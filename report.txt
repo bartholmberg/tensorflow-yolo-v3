@@ -1,0 +1,23 @@
+TensorFlow 2.0 Upgrade Script
+-----------------------------
+Converted 1 files
+Detected 2 issues that require attention
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+File: C:\Users\barth\anaconda3\envs\yolo\lib\site-packages\PIL\Image.py
+--------------------------------------------------------------------------------
+C:\Users\barth\anaconda3\envs\yolo\lib\site-packages\PIL\Image.py:640:12: WARNING: *.save requires manual check. (This warning is only applicable if the code saves a tf.Keras model) Keras model.save now saves to the Tensorflow SavedModel format by default, instead of HDF5. To continue saving to HDF5, add the argument save_format='h5' to the save() function.
+C:\Users\barth\anaconda3\envs\yolo\lib\site-packages\PIL\Image.py:672:8: WARNING: *.save requires manual check. (This warning is only applicable if the code saves a tf.Keras model) Keras model.save now saves to the Tensorflow SavedModel format by default, instead of HDF5. To continue saving to HDF5, add the argument save_format='h5' to the save() function.
+================================================================================
+Detailed log follows:
+
+================================================================================
+--------------------------------------------------------------------------------
+Processing file 'C:\\Users\\barth\\anaconda3\\envs\\yolo\\lib\\site-packages\\PIL\\Image.py'
+ outputting to 'C:\\Users\\barth\\anaconda3\\envs\\yolo\\lib\\site-packages\\PIL\\Image_.py'
+--------------------------------------------------------------------------------
+
+640:12: WARNING: *.save requires manual check. (This warning is only applicable if the code saves a tf.Keras model) Keras model.save now saves to the Tensorflow SavedModel format by default, instead of HDF5. To continue saving to HDF5, add the argument save_format='h5' to the save() function.
+672:8: WARNING: *.save requires manual check. (This warning is only applicable if the code saves a tf.Keras model) Keras model.save now saves to the Tensorflow SavedModel format by default, instead of HDF5. To continue saving to HDF5, add the argument save_format='h5' to the save() function.
+--------------------------------------------------------------------------------
+

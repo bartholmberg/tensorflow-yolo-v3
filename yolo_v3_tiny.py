@@ -2,10 +2,11 @@
 
 import numpy as np
 import tensorflow as tf
+import tf_slim as tfs
 from yolo_v3 import _conv2d_fixed_padding, _fixed_padding, _get_size, \
     _detection_layer, _upsample
-
-slim = tf.contrib.slim
+slim = tf.keras.Sequential();
+#slim = tfs.contrib.slim
 
 _BATCH_NORM_DECAY = 0.9
 _BATCH_NORM_EPSILON = 1e-05

@@ -11,48 +11,48 @@ import yolo_v3_tiny
 from utils import load_coco_names, draw_boxes, get_boxes_and_inputs, get_boxes_and_inputs_pb, non_max_suppression, \
                   load_graph, letter_box_image
 
-FLAGS = tf.app.flags.FLAGS
+FLAGS = tf.compat.v1.app.flags.FLAGS
 
-tf.app.flags.DEFINE_string(
+tf.compat.v1.app.flags.DEFINE_string(
     'input_img', '', 'Input image')
-tf.app.flags.DEFINE_string(
+tf.compat.v1.app.flags.DEFINE_string(
     'output_img', '', 'Output image')
-tf.app.flags.DEFINE_string(
+tf.compat.v1.app.flags.DEFINE_string(
     'class_names', 'coco.names', 'File with class names')
-tf.app.flags.DEFINE_string(
+tf.compat.v1.app.flags.DEFINE_string(
     'weights_file', 'yolov3.weights', 'Binary file with detector weights')
-tf.app.flags.DEFINE_string(
+tf.compat.v1.app.flags.DEFINE_string(
     'data_format', 'NCHW', 'Data format: NCHW (gpu only) / NHWC')
-tf.app.flags.DEFINE_string(
+tf.compat.v1.app.flags.DEFINE_string(
     'ckpt_file', './saved_model/model.ckpt', 'Checkpoint file')
-tf.app.flags.DEFINE_string(
+tf.compat.v1.app.flags.DEFINE_string(
     'frozen_model', '', 'Frozen tensorflow protobuf model')
-tf.app.flags.DEFINE_bool(
+tf.compat.v1.app.flags.DEFINE_bool(
     'tiny', False, 'Use tiny version of YOLOv3')
-tf.app.flags.DEFINE_bool(
+tf.compat.v1.app.flags.DEFINE_bool(
     'spp', False, 'Use SPP version of YOLOv3')
 
-tf.app.flags.DEFINE_integer(
+tf.compat.v1.app.flags.DEFINE_integer(
     'size', 416, 'Image size')
 
-tf.app.flags.DEFINE_float(
+tf.compat.v1.app.flags.DEFINE_float(
     'conf_threshold', 0.5, 'Confidence threshold')
-tf.app.flags.DEFINE_float(
+tf.compat.v1.app.flags.DEFINE_float(
     'iou_threshold', 0.4, 'IoU threshold')
 
-tf.app.flags.DEFINE_float(
+tf.compat.v1.app.flags.DEFINE_float(
     'gpu_memory_fraction', 1.0, 'Gpu memory fraction to use')
 
 def main(argv=None):
 
-    gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=FLAGS.gpu_memory_fraction)
+    gpu_options = tf.compat.v1.GPUOptions(per_process_gpu_memory_fraction=FLAGS.gpu_memory_fraction)
 
-    config = tf.ConfigProto(
+    config = tf.compat.v1.ConfigProto(
         gpu_options=gpu_options,
         log_device_placement=False,
     )
-
-    img = Image.open(FLAGS.input_img)
+    myimg=FLAGS.input_img
+    img = Image.open(myimg)
     img_resized = letter_box_image(img, FLAGS.size, FLAGS.size, 128)
     img_resized = img_resized.astype(np.float32)
     classes = load_coco_names(FLAGS.class_names)
@@ -65,7 +65,7 @@ def main(argv=None):
 
         boxes, inputs = get_boxes_and_inputs_pb(frozenGraph)
 
-        with tf.Session(graph=frozenGraph, config=config) as sess:
+        with tf.compat.v1.Session(graph=frozenGraph, config=config) as sess:
             t0 = time.time()
             detected_boxes = sess.run(
                 boxes, feed_dict={inputs: [img_resized]})
@@ -80,9 +80,9 @@ def main(argv=None):
 
         boxes, inputs = get_boxes_and_inputs(model, len(classes), FLAGS.size, FLAGS.data_format)
 
-        saver = tf.train.Saver(var_list=tf.global_variables(scope='detector'))
+        saver = tf.compat.v1.train.Saver(var_list=tf.compat.v1.global_variables(scope='detector'))
 
-        with tf.Session(config=config) as sess:
+        with tf.compat.v1.Session(config=config) as sess:
             t0 = time.time()
             saver.restore(sess, FLAGS.ckpt_file)
             print('Model restored in {:.2f}s'.format(time.time()-t0))
@@ -102,4 +102,4 @@ def main(argv=None):
 
 
 if __name__ == '__main__':
-    tf.app.run()
+    tf.compat.v1.app.run()

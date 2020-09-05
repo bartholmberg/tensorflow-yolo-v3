@@ -2,9 +2,9 @@
 
 import numpy as np
 import tensorflow as tf
-
-slim = tf.contrib.slim
-
+import tf_slim as tfs
+#slim = tf.contrib.slim
+slim = tf.keras.Sequential();
 _BATCH_NORM_DECAY = 0.9
 _BATCH_NORM_EPSILON = 1e-05
 _LEAKY_RELU = 0.1
@@ -71,7 +71,8 @@ def _spp_block(inputs, data_format='NCHW'):
                      axis=1 if data_format == 'NCHW' else 3)
 
 
-@tf.contrib.framework.add_arg_scope
+#@tf.contrib.framework.add_arg_scope
+@tfs.add_arg_scope
 def _fixed_padding(inputs, kernel_size, *args, mode='CONSTANT', **kwargs):
     """
     Pads the input along the spatial dimensions independently of input size.
@@ -93,12 +94,12 @@ def _fixed_padding(inputs, kernel_size, *args, mode='CONSTANT', **kwargs):
     pad_end = pad_total - pad_beg
 
     if kwargs['data_format'] == 'NCHW':
-        padded_inputs = tf.pad(inputs, [[0, 0], [0, 0],
+        padded_inputs = tf.pad(tensor=inputs, paddings=[[0, 0], [0, 0],
                                         [pad_beg, pad_end],
                                         [pad_beg, pad_end]],
                                mode=mode)
     else:
-        padded_inputs = tf.pad(inputs, [[0, 0], [pad_beg, pad_end],
+        padded_inputs = tf.pad(tensor=inputs, paddings=[[0, 0], [pad_beg, pad_end],
                                         [pad_beg, pad_end], [0, 0]], mode=mode)
     return padded_inputs
 
@@ -130,7 +131,7 @@ def _detection_layer(inputs, num_classes, anchors, img_size, data_format):
     predictions = slim.conv2d(inputs, num_anchors * (5 + num_classes), 1,
                               stride=1, normalizer_fn=None,
                               activation_fn=None,
-                              biases_initializer=tf.zeros_initializer())
+                              biases_initializer=tf.compat.v1.zeros_initializer())
 
     shape = predictions.get_shape().as_list()
     grid_size = _get_size(shape, data_format)
@@ -140,7 +141,7 @@ def _detection_layer(inputs, num_classes, anchors, img_size, data_format):
     if data_format == 'NCHW':
         predictions = tf.reshape(
             predictions, [-1, num_anchors * bbox_attrs, dim])
-        predictions = tf.transpose(predictions, [0, 2, 1])
+        predictions = tf.transpose(a=predictions, perm=[0, 2, 1])
 
     predictions = tf.reshape(predictions, [-1, num_anchors * dim, bbox_attrs])
 
@@ -181,7 +182,7 @@ def _detection_layer(inputs, num_classes, anchors, img_size, data_format):
 def _upsample(inputs, out_shape, data_format='NCHW'):
     # tf.image.resize_nearest_neighbor accepts input in format NHWC
     if data_format == 'NCHW':
-        inputs = tf.transpose(inputs, [0, 2, 3, 1])
+        inputs = tf.transpose(a=inputs, perm=[0, 2, 3, 1])
 
     if data_format == 'NCHW':
         new_height = out_shape[3]
@@ -190,11 +191,11 @@ def _upsample(inputs, out_shape, data_format='NCHW'):
         new_height = out_shape[2]
         new_width = out_shape[1]
 
-    inputs = tf.image.resize_nearest_neighbor(inputs, (new_height, new_width))
+    inputs = tf.image.resize(inputs, (new_height, new_width), method=tf.image.ResizeMethod.NEAREST_NEIGHBOR)
 
     # back to NCHW if needed
     if data_format == 'NCHW':
-        inputs = tf.transpose(inputs, [0, 3, 1, 2])
+        inputs = tf.transpose(a=inputs, perm=[0, 3, 1, 2])
 
     inputs = tf.identity(inputs, name='upsampled')
     return inputs
@@ -218,7 +219,7 @@ def yolo_v3(inputs, num_classes, is_training=False, data_format='NCHW', reuse=Fa
 
     # transpose the inputs to NCHW
     if data_format == 'NCHW':
-        inputs = tf.transpose(inputs, [0, 3, 1, 2])
+        inputs = tf.transpose(a=inputs, perm=[0, 3, 1, 2])
 
     # normalize values to range [0..1]
     inputs = inputs / 255
@@ -238,10 +239,10 @@ def yolo_v3(inputs, num_classes, is_training=False, data_format='NCHW', reuse=Fa
                             normalizer_params=batch_norm_params,
                             biases_initializer=None,
                             activation_fn=lambda x: tf.nn.leaky_relu(x, alpha=_LEAKY_RELU)):
-            with tf.variable_scope('darknet-53'):
+            with tf.compat.v1.variable_scope('darknet-53'):
                 route_1, route_2, inputs = darknet53(inputs)
 
-            with tf.variable_scope('yolo-v3'):
+            with tf.compat.v1.variable_scope('yolo-v3'):
                 route, inputs = _yolo_block(inputs, 512, data_format, with_spp)
 
                 detect_1 = _detection_layer(
